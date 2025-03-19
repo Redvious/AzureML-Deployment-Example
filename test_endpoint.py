@@ -12,4 +12,4 @@ headers = {"Content-Type": "application/json"}
 response = requests.post(scoring_uri, data=json.dumps(data), headers=headers)
 
 # Print the response
-print(f"Model response: {response.json()}")
+print(f"Model response: {response.json()}"))
