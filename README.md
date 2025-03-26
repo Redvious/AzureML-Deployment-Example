@@ -15,5 +15,5 @@ This repository demonstrates how to deploy a simple Iris classification model us
 
 ## Prerequisites
 
-- An Azure ML workspace configured.
+- An active Azure subscription.
 - Python dependencies installed (see `environment.yml`).

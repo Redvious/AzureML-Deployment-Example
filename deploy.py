@@ -1,6 +1,8 @@
-from azureml.core import Workspace, Model, Environment
-from azureml.core.webservice import AciWebservice
-from azureml.core.model import InferenceConfig
+from azureml.core import Workspace
+from azureml.core.webservice import AciWebservice, Webservice
+from azureml.core.model import InferenceConfig, Model
+from azureml.core.environment import Environment
+from azureml.core.conda_dependencies import CondaDependencies
 
 # Load the workspace from the config.json file
 try:
@@ -13,31 +15,33 @@ except Exception as e:
     print(e)
     exit()
 
+model_path='model.pkl'
+model_name='iris__model'
+
 # Register the model
-model = Model.register(workspace=ws, model_path="model.pkl", model_name="my_model")
+model = Model.register(workspace=ws, model_path=model_path, model_name=model_name)
 
 # Configure the environment
-env = Environment.from_conda_specification(name="my_env1", file_path="environment.yml")
-
-# Register the environment (optional)
-env.register(workspace=ws)
+conda_env = Environment.from_conda_specification(
+    name="myconda-env",
+    file_path="environment.yml"
+)
+conda_env.register(workspace=ws)
 
 # Configure inference
-inference_config = InferenceConfig(entry_script="score.py", environment=env)
+inference_config = InferenceConfig(entry_script='score.py', environment=conda_env)
 
 # Configure deployment (ACI)
 deployment_config = AciWebservice.deploy_configuration(cpu_cores=1, memory_gb=1)
 
 # Deploy the model
 try:
-    service = Model.deploy(
-        workspace=ws,
-        name="irismodel-service",
-        models=[model],
-        inference_config=inference_config,
-        deployment_config=deployment_config,
-        overwrite=True
-    )
+    service = Model.deploy(workspace=ws,
+                           name="iris-prediction-service",
+                           models=[model],
+                           inference_config=inference_config,
+                           deployment_config=deployment_config,
+                           overwrite=True)
     service.wait_for_deployment(show_output=True)
 except Exception as e:
     print(f"Deployment failed: {e}")
@@ -46,5 +50,5 @@ except Exception as e:
     else:
         print("Service object not created. Check the deployment configuration.")
 
-# Print the endpoint URL
+
 print(f"Endpoint URL: {service.scoring_uri}")
